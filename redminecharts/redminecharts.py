@@ -36,19 +36,20 @@ def issues_by_status():
     return chart.render_response()
 
 
-@redminecharts.route('/issues_per_month', methods=['GET'])
-def issues_per_month():
+@redminecharts.route('/issues_per_frame', methods=['GET'])
+def issues_per_frame():
     now = arrow.get()
     project_id = request.args.get('project_id', type=int)
     start = request.args.get('start', type=arrow.get,
                              default=now.floor('year'))
     end = request.args.get('end', type=arrow.get,
                            default=now)
+    frame = request.args.get('frame', default='month')
 
     issues_per_month = defaultdict(int)
-    date_range = arrow.Arrow.range('month', start, end)
+    date_range = arrow.Arrow.range(frame, start, end)
     for s in date_range:
-        e = min(s.ceil('month'), end)
+        e = min(s.ceil(frame), end)
         fmt = 'YYYY-MM-DD'
         query = '><{}|{}'.format(s.format(fmt), e.format(fmt))
         created = redmine.issue.filter(
