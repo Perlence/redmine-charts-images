@@ -4,11 +4,13 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
+    'arrow',
     'CairoSVG',
     'cssselect',
     'flask',
     'lxml',
     'pygal',
+    'python-redmine',
     'tinycss',
 ]
 
