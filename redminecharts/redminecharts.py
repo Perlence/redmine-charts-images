@@ -70,6 +70,24 @@ def issues_per_month():
     return chart.render_response()
 
 
+@redminecharts.route('/today_issues', methods=['GET'])
+def today_issues():
+    project_id = request.args.get('project_id', type=int)
+
+    today = arrow.get().format('YYYY-MM-DD')
+    created = redmine.issue.filter(
+        project_id=project_id, status_id='*', created_on=today, limit=1)
+    closed = redmine.issue.filter(
+        project_id=project_id, status_id='closed', closed_on=today, limit=1)
+    list(created)
+    list(closed)
+
+    chart = pygal.Bar(pygal_config)
+    chart.add('Created', created.total_count)
+    chart.add('Closed', closed.total_count)
+    return chart.render_response()
+
+
 def sort_by_key(mapping, **kwargs):
     return sorted(mapping.iteritems(), key=lambda (k, _): k, **kwargs)
 
