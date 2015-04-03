@@ -30,10 +30,10 @@ def issues_by_status():
         list(rs)  # Execute request
         issues_by_status[status.name] = rs.total_count
 
-    pie = pygal.Pie(pygal_config)
+    chart = pygal.Pie(pygal_config)
     for key, value in sort_by_value(issues_by_status, reverse=True):
-        pie.add(key, value)
-    return pie.render_response()
+        chart.add(key, value)
+    return chart.render_response()
 
 
 @redminecharts.route('/issues_per_month', methods=['GET'])
@@ -63,10 +63,11 @@ def issues_per_month():
             'Closed': closed.total_count,
         }
 
-    pie = pygal.Bar(pygal_config)
+    chart = pygal.Bar(pygal_config)
+    chart.x_labels = [format(d, 'MMM/YY') for d in date_range]
     for name in ('Created', 'Closed'):
-        pie.add(name, [issues_per_month[s][name] for s in date_range])
-    return pie.render_response()
+        chart.add(name, [issues_per_month[d][name] for d in date_range])
+    return chart.render_response()
 
 
 def sort_by_key(mapping, **kwargs):
