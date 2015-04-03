@@ -8,6 +8,7 @@
 *.egg-info
 dist
 build
+env
 eggs
 parts
 bin
@@ -41,3 +42,9 @@ output/*/index.html
 
 # Sphinx
 docs/_build
+
+# Sublime Text Workspace
+*.sublime-workspace
+
+# Settings
+settings.cfg

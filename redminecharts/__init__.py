@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+from .redminecharts import redminecharts  # noqa
 
 __author__ = 'Sviatoslav Abakumov'
 __email__ = 'dust.harvesting@gmail.com'
