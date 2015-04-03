@@ -15,7 +15,7 @@ requirements = [
 setup(
     name='redmine-charts-images',
     version='0.1.0',
-    description="Display meaningful Redmine charts.",
+    description='Display meaningful Redmine charts.',
     long_description=readme,
     author="Sviatoslav Abakumov",
     author_email='dust.harvesting@gmail.com',
@@ -27,7 +27,7 @@ setup(
                  'redminecharts'},
     include_package_data=True,
     install_requires=requirements,
-    license="BSD",
+    license='BSD',
     zip_safe=False,
     keywords='redmine-charts-images',
     classifiers=[
