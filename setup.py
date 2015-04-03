@@ -7,6 +7,7 @@ requirements = [
     'arrow',
     'CairoSVG',
     'cssselect',
+    'gevent',
     'flask',
     'lxml',
     'pygal',

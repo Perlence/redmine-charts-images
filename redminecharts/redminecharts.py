@@ -3,6 +3,7 @@ from os.path import dirname
 
 import arrow
 from flask import Config, Blueprint, request
+from gevent import spawn, joinall
 import pygal
 from redmine import Redmine
 
@@ -24,11 +25,14 @@ def issues_by_status():
     project_id = request.args.get('project_id', type=int)
 
     issues_by_status = defaultdict(int)
-    for status in issue_statuses:
+
+    def func(status):
         rs = redmine.issue.filter(project_id=project_id, status_id=status.id,
                                   limit=1)
         list(rs)  # Execute request
         issues_by_status[status.name] = rs.total_count
+
+    joinall([spawn(func, status) for status in issue_statuses])
 
     chart = pygal.Pie(pygal_config)
     for key, value in sort_by_value(issues_by_status, reverse=True):
@@ -48,7 +52,8 @@ def issues_per_frame():
 
     issues_per_month = defaultdict(int)
     date_range = arrow.Arrow.range(frame, start, end)
-    for s in date_range:
+
+    def func(s):
         e = min(s.ceil(frame), end)
         fmt = 'YYYY-MM-DD'
         query = '><{}|{}'.format(s.format(fmt), e.format(fmt))
@@ -57,12 +62,13 @@ def issues_per_frame():
         closed = redmine.issue.filter(
             project_id=project_id, status_id='closed', closed_on=query,
             limit=1)
-        list(created)
-        list(closed)
+        joinall([spawn(list, created), spawn(list, closed)])
         issues_per_month[s] = {
             'Created': created.total_count,
             'Closed': closed.total_count,
         }
+
+    joinall([spawn(func, s) for s in date_range])
 
     chart = pygal.Bar(pygal_config)
     chart.x_labels = [format(d, 'MMM/YY') for d in date_range]
@@ -80,8 +86,7 @@ def today_issues():
         project_id=project_id, status_id='*', created_on=today, limit=1)
     closed = redmine.issue.filter(
         project_id=project_id, status_id='closed', closed_on=today, limit=1)
-    list(created)
-    list(closed)
+    joinall([spawn(list, created), spawn(list, closed)])
 
     chart = pygal.Bar(pygal_config)
     chart.add('Created', created.total_count)
