@@ -1,8 +1,9 @@
 from collections import defaultdict
+from io import BytesIO
 from os.path import dirname
 
 import arrow
-from flask import Config, Blueprint, request
+from flask import Config, Blueprint, request, send_file
 import pygal
 from redmine import Redmine
 
@@ -33,7 +34,7 @@ def issues_by_status():
     chart = pygal.Pie(pygal_config)
     for key, value in sort_by_value(issues_by_status, reverse=True):
         chart.add(key, value)
-    return chart.render_response()
+    return render_png_response(chart)
 
 
 @redminecharts.route('/issues_per_frame', methods=['GET'])
@@ -68,7 +69,7 @@ def issues_per_frame():
     chart.x_labels = [format(d, 'MMM/YY') for d in date_range]
     for name in ('Created', 'Closed'):
         chart.add(name, [issues_per_month[d][name] for d in date_range])
-    return chart.render_response()
+    return render_png_response(chart)
 
 
 @redminecharts.route('/today_issues', methods=['GET'])
@@ -86,7 +87,7 @@ def today_issues():
     chart = pygal.Bar(pygal_config)
     chart.add('Created', created.total_count)
     chart.add('Closed', closed.total_count)
-    return chart.render_response()
+    return render_png_response(chart)
 
 
 def sort_by_key(mapping, **kwargs):
@@ -95,3 +96,10 @@ def sort_by_key(mapping, **kwargs):
 
 def sort_by_value(mapping, **kwargs):
     return sorted(mapping.iteritems(), key=lambda (_, v): v, **kwargs)
+
+
+def render_png_response(chart, dpi=72, **kwargs):
+    file_obj = BytesIO()
+    chart.render_to_png(file_obj, dpi=dpi, **kwargs)
+    file_obj.seek(0)
+    return send_file(file_obj, mimetype='image/png')
