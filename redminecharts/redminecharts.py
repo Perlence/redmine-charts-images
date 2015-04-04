@@ -1,4 +1,4 @@
-from asyncio import coroutine, async, wait
+from asyncio import coroutine, wait, gather
 from collections import defaultdict
 from io import BytesIO
 from os.path import dirname
@@ -55,7 +55,7 @@ def issues_by_status(request):
             })
         issues_by_status[status['name']] = resp['total_count']
 
-    yield from wait([async(get_issues(status)) for status in issue_statuses])
+    yield from wait(map(get_issues, issue_statuses))
 
     chart = pygal.Pie(pygal_config)
     for key, value in sort_by_value(issues_by_status, reverse=True):
@@ -83,31 +83,30 @@ def issues_per_frame(request):
         e = min(s.ceil(frame), end)
         fmt = 'YYYY-MM-DD'
         query = '><{}|{}'.format(s.format(fmt), e.format(fmt))
-        created_task = async(redmine.request(
+        created_coro = redmine.request(
             'get', 'issues',
             params={
                 'project_id': project_id,
                 'status_id': '*',
                 'created_on': query,
                 'limit': 1,
-            }))
-        closed_task = async(redmine.request(
+            })
+        closed_coro = redmine.request(
             'get', 'issues',
             params={
                 'project_id': project_id,
                 'status_id': 'closed',
                 'closed_on': query,
                 'limit': 1,
-            }))
-        yield from wait([created_task, closed_task])
-        created, closed = created_task.result(), closed_task.result()
+            })
+        created, closed = yield from gather(created_coro, closed_coro)
         issues_per_frame[s] = {
             'Created': created['total_count'],
             'Closed': closed['total_count'],
         }
 
     date_range = arrow.Arrow.range(frame, start, end)
-    yield from wait([async(get_issues(s)) for s in date_range])
+    yield from wait(map(get_issues, date_range))
 
     chart = pygal.Bar(pygal_config)
     chart.x_labels = [format(d, 'MMM/YY') for d in date_range]
@@ -121,25 +120,23 @@ def today_issues(request):
     project_id = int(request.GET.get('project_id'))
 
     today = arrow.get().format('YYYY-MM-DD')
-    created_task = async(redmine.request(
+    created_coro = redmine.request(
         'get', 'issues',
         params={
             'project_id': project_id,
             'status_id': '*',
             'created_on': today,
             'limit': 1,
-        }))
-    closed_task = async(redmine.request(
+        })
+    closed_coro = redmine.request(
         'get', 'issues',
         params={
             'project_id': project_id,
             'status_id': 'closed',
             'closed_on': today,
             'limit': 1,
-        }))
-    yield from wait([created_task, closed_task])
-    created = created_task.result()
-    closed = closed_task.result()
+        })
+    created, closed = yield from gather(created_coro, closed_coro)
 
     chart = pygal.Bar(pygal_config)
     chart.add('Created', created['total_count'])
@@ -158,6 +155,7 @@ def sort_by_value(mapping, **kwargs):
 def render_response(chart, **kwargs):
     return web.Response(body=chart.render(**kwargs),
                         content_type='image/svg+xml')
+
 
 def render_png_response(chart, dpi=72, **kwargs):
     file_obj = BytesIO()
