@@ -8,7 +8,6 @@
 *.egg-info
 dist
 build
-env
 eggs
 parts
 bin
@@ -48,3 +47,7 @@ docs/_build
 
 # Settings
 settings.cfg
+
+# Virtual environments
+py27
+py34
