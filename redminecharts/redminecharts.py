@@ -1,4 +1,3 @@
-from collections import defaultdict
 from io import BytesIO
 from os.path import dirname
 
@@ -24,7 +23,7 @@ issue_statuses = list(redmine.issue_status.all())
 def issues_by_status():
     project_id = request.args.get('project_id', type=int)
 
-    issues_by_status = defaultdict(int)
+    issues_by_status = {}
     for status in issue_statuses:
         rs = redmine.issue.filter(project_id=project_id, status_id=status.id,
                                   limit=1)
@@ -33,7 +32,7 @@ def issues_by_status():
 
     chart = pygal.Pie(pygal_config)
     for key, value in sort_by_value(issues_by_status, reverse=True):
-        chart.add(key, value)
+        chart.add('{} ({})'.format(key, value), value)
     return render_png_response(chart)
 
 
@@ -47,12 +46,11 @@ def issues_per_frame():
                            default=now)
     frame = request.args.get('frame', default='month')
 
-    issues_per_month = defaultdict(int)
+    issues_per_month = {}
     date_range = arrow.Arrow.range(frame, start, end)
     for s in date_range:
         e = min(s.ceil(frame), end)
-        fmt = 'YYYY-MM-DD'
-        query = '><{}|{}'.format(s.format(fmt), e.format(fmt))
+        query = '><{:YYYY-MM-DD}|{:YYYY-MM-DD}'.format(s, e)
         created = redmine.issue.filter(
             project_id=project_id, status_id='*', created_on=query, limit=1)
         closed = redmine.issue.filter(
