@@ -24,9 +24,12 @@ issue_statuses = []
 @coroutine
 def redminecharts(loop):
     app = web.Application(loop=loop)
-    app.router.add_route('GET', '/issues_by_status', issues_by_status)
-    app.router.add_route('GET', '/issues_per_frame', issues_per_frame)
-    app.router.add_route('GET', '/today_issues', today_issues)
+    app.router.add_route(
+        'GET', '/project/{project_id}/issues_by_status', issues_by_status)
+    app.router.add_route(
+        'GET', '/project/{project_id}/issues_per/{frame}', issues_per_frame)
+    app.router.add_route(
+        'GET', '/project/{project_id}/today_issues', today_issues)
 
     srv = yield from loop.create_server(app.make_handler(), '127.0.0.1', 5000)
     print('Server started at http://127.0.0.1:5000')
@@ -40,7 +43,7 @@ def redminecharts(loop):
 
 @coroutine
 def issues_by_status(request):
-    project_id = int(request.GET.get('project_id'))
+    project_id = request.match_info['project_id']
 
     issues_by_status = defaultdict(int)
 
@@ -66,10 +69,10 @@ def issues_by_status(request):
 @coroutine
 def issues_per_frame(request):
     now = arrow.get()
-    project_id = int(request.GET.get('project_id'))
+    project_id = request.match_info['project_id']
+    frame = request.match_info['frame']
     start = request.GET.get('start', now.floor('year'))
     end = request.GET.get('end', now)
-    frame = request.GET.get('frame', 'month')
 
     if not isinstance(start, arrow.Arrow):
         start = arrow.get(start)
@@ -117,7 +120,7 @@ def issues_per_frame(request):
 
 @coroutine
 def today_issues(request):
-    project_id = int(request.GET.get('project_id'))
+    project_id = request.match_info['project_id']
 
     today = arrow.get().format('YYYY-MM-DD')
     created_coro = redmine.request(
