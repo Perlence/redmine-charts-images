@@ -5,7 +5,7 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    'aiohttp'
+    'aiohttp',
     'arrow',
     'CairoSVG',
     'cssselect',
@@ -33,9 +33,14 @@ setup(
     install_requires=requirements,
     license='BSD',
     zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'redminecharts = redminecharts.redminecharts:main'
+        ],
+    },
     keywords='redmine-charts-images',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 2 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',

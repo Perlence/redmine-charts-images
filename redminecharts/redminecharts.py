@@ -1,4 +1,4 @@
-from asyncio import coroutine, wait, gather
+from asyncio import get_event_loop, coroutine, gather, wait
 from io import BytesIO
 from os.path import dirname
 
@@ -18,6 +18,15 @@ pygal_config = pygal.Config(style=config['PYGAL_STYLE'])
 
 redmine = AsyncRedmine(config['REDMINE_URL'], key=config['API_KEY'])
 issue_statuses = []
+
+
+def main():
+    loop = get_event_loop()
+    loop.run_until_complete(redminecharts(loop))
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
 
 
 @coroutine
