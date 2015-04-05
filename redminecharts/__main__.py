@@ -1,8 +1,11 @@
-from flask import Flask
+from asyncio import get_event_loop
 
-from redminecharts import redminecharts
+from .redminecharts import redminecharts
 
 
-app = Flask(__name__)
-app.register_blueprint(redminecharts)
-app.run('127.0.0.1', debug=True)
+loop = get_event_loop()
+loop.run_until_complete(redminecharts(loop))
+try:
+    loop.run_forever()
+except KeyboardInterrupt:
+    pass
