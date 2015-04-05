@@ -50,12 +50,12 @@ class AsyncRedmine:
         if response.status in (200, 201):
             if raw_response:
                 return response
-            content = yield from response.content.read()
-            if not content.strip():
+            text = yield from response.text()
+            if not text.strip():
                 return True
             else:
                 try:
-                    return json.loads(content.decode('utf-8'))
+                    return json.loads(text)
                 except (ValueError, TypeError):
                     raise JSONDecodeError
         elif response.status == 401:
