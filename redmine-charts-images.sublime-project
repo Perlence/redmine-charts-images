@@ -6,7 +6,8 @@
 			"path": "."
 		}
 	],
-	"settings": {
-		"python_interpreter": "$project_path/env/bin/python"
+	"settings":
+	{
+		"python_interpreter": "$project_path/py34/bin/python"
 	}
 }
