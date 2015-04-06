@@ -1,4 +1,4 @@
-import asyncio
+from asyncio import coroutine
 import json
 from posixpath import join
 
@@ -20,7 +20,7 @@ class AsyncRedmine:
         self.requests = requests
         self.impersonate = impersonate
 
-    @asyncio.coroutine
+    @coroutine
     def request(self, method, url, headers=None, params=None, data=None,
                 raw_response=False):
         """Make requests to Redmine and returns result in json format."""
