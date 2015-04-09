@@ -27,8 +27,9 @@ setup(
     packages=[
         'redminecharts',
     ],
-    package_dir={'redminecharts':
-                 'redminecharts'},
+    package_dir={
+        'redminecharts': 'redminecharts'
+    },
     include_package_data=True,
     install_requires=requirements,
     license='BSD',

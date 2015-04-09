@@ -57,13 +57,11 @@ def issues_by_status(request):
 
     @coroutine
     def get_issues(status):
-        resp = yield from redmine.request(
-            'get', 'issues',
-            params={
-                'project_id': project_id,
-                'status_id': status['id'],
-                'limit': 1
-            })
+        resp = yield from redmine.request('get', 'issues', params={
+            'project_id': project_id,
+            'status_id': status['id'],
+            'limit': 1
+        })
         issues_by_status[status['name']] = resp['total_count']
 
     yield from wait(map(get_issues, issue_statuses))
@@ -93,22 +91,18 @@ def issues_per_frame(request):
     def get_issues(s):
         e = min(s.ceil(frame), end)
         query = '><{:YYYY-MM-DD}|{:YYYY-MM-DD}'.format(s, e)
-        created_coro = redmine.request(
-            'get', 'issues',
-            params={
-                'project_id': project_id,
-                'status_id': '*',
-                'created_on': query,
-                'limit': 1,
-            })
-        closed_coro = redmine.request(
-            'get', 'issues',
-            params={
-                'project_id': project_id,
-                'status_id': 'closed',
-                'closed_on': query,
-                'limit': 1,
-            })
+        created_coro = redmine.request('get', 'issues', params={
+            'project_id': project_id,
+            'status_id': '*',
+            'created_on': query,
+            'limit': 1,
+        })
+        closed_coro = redmine.request('get', 'issues', params={
+            'project_id': project_id,
+            'status_id': 'closed',
+            'closed_on': query,
+            'limit': 1,
+        })
         created, closed = yield from gather(created_coro, closed_coro)
         issues_per_frame[s] = {
             'Created': created['total_count'],
@@ -130,22 +124,18 @@ def today_issues(request):
     project_id = request.match_info['project_id']
 
     today = arrow.get().format('YYYY-MM-DD')
-    created_coro = redmine.request(
-        'get', 'issues',
-        params={
-            'project_id': project_id,
-            'status_id': '*',
-            'created_on': today,
-            'limit': 1,
-        })
-    closed_coro = redmine.request(
-        'get', 'issues',
-        params={
-            'project_id': project_id,
-            'status_id': 'closed',
-            'closed_on': today,
-            'limit': 1,
-        })
+    created_coro = redmine.request('get', 'issues', params={
+        'project_id': project_id,
+        'status_id': '*',
+        'created_on': today,
+        'limit': 1,
+    })
+    closed_coro = redmine.request('get', 'issues', params={
+        'project_id': project_id,
+        'status_id': 'closed',
+        'closed_on': today,
+        'limit': 1,
+    })
     created, closed = yield from gather(created_coro, closed_coro)
 
     chart = pygal.Bar(pygal_config)
