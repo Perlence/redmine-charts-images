@@ -1,5 +1,6 @@
 from asyncio import get_event_loop, coroutine, gather, wait
 from io import BytesIO
+import logging
 from os.path import dirname
 
 from aiohttp import web
@@ -17,6 +18,11 @@ config.from_pyfile('settings.cfg')
 pygal_config = pygal.Config(style=config['PYGAL_STYLE'])
 
 redmine = AsyncRedmine(config['REDMINE_URL'], key=config['API_KEY'])
+
+access_logger = logging.getLogger('aiohttp.access')
+access_logger.addHandler(logging.StreamHandler())
+access_logger.setLevel(logging.INFO)
+
 issue_statuses = []
 
 
